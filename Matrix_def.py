@@ -182,7 +182,7 @@ def str_to_tensor(str_tensor):
     tensor = tf.cast(tensor, eval(type))
     return tensor
 
-
+'''
 if __name__ == '__main__':
     # matrix test
     print '---------- Matrix ----------'
@@ -334,4 +334,5 @@ if __name__ == '__main__':
     print '----------'
     print 'Tensor from String: \n' + str(sess.run(c))
     print 'Generated Tensor info: ' + str(c)
-    sess.close()
+    sess.close() 
+    '''
