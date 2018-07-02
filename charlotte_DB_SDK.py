@@ -9,10 +9,6 @@ from charlotte_DB_SDK_config import *
 import json
 
 
-#TODO: CHARLOTTE_DB_get_all_object()
-#TODO: CHARLOTTE_DB_add_new_keyed_object()
-#TODO: CHARLOTTE_DB_get_object()
-
 def CHARLOTTE_DB_get_table_names():
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_table_names%2A"
@@ -37,35 +33,35 @@ def CHARLOTTE_DB_get_table_fields(table_name):
 
     return fields
 
-
-#TODO Get fields. Choose one and assign it to field name
 def CHARLOTTE_DB_get_all_objects_json(table_name):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_partial_object_data%2A"
-
     fields = CHARLOTTE_DB_get_table_fields(table_name)
-
     querystring = {"token" : DATABASE_TOKEN,"table_name" : table_name,"field_name": fields[0],"search_string" : ""}
 
     response = requests.request("GET", url, params=querystring)
+    try:
+        return json.loads(response.content)
+    except ValueError:
+        return response.content
 
-    data = json.loads(response.content)
-
-    return data
-
-def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data2):
-
-    url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
-
-    json_data2 = str(json_data2)
-    json_data2 = json_data2.replace("'",'"')
-
-    querystring = {"token":DATABASE_TOKEN,"table_name":table_name,"key_field":key_field,"key_string":key_string}
-
-
-    response = requests.request("POST", url, params=querystring,data=json_data2)
-
-    return response.text
+def CHARLOTTE_DB_create_table(table_name,array_of_fields):
+    #Check for duplicates
+    if len(array_of_fields) != len(set(array_of_fields)):
+        raise Exception("Cannot have duplicate table fields")
+    # Param check
+    if len(array_of_fields) < 1:
+        raise Exception('ERROR CANNOT HAVE EMPTY FIELDS')
+    if table_name == "":
+        return Exception('TABLE NAME CANNOT BE EMPTY STRING')
+    # Parse request
+    array_of_fields = '{"' + '","'.join(array_of_fields) + '"}'
+    request = requests.get('http://' + IP_ADDRESS_DB + '/db/*create_table*?token=' + DATABASE_TOKEN + '&table_name=' + table_name + '&array_of_fields=' + array_of_fields)
+    # Check response
+    if request.status_code != 200:
+        return 'Request Unsuccessful: ' + str(request.status_code)
+    else:
+        return request.content
 
 def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
 
@@ -82,22 +78,151 @@ def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
     except ValueError:
         return response.content
 
-def CHARLOTTE_create_table(table_name,array_of_fields):
-    # Param check
-    if len(array_of_fields) < 1:
-        raise Exception('ERROR CANNOT HAVE EMPTY FIELDS')
-    if table_name == "":
-        return Exception('TABLE NAME CANNOT BE EMPTY STRING')
-    # Parse request
-    array_of_fields = '{"' + '","'.join(array_of_fields) + '"}'
-    request = requests.get(
-        'http://' + IP_ADDRESS_DB + '/db/*create_table*?token=' + DATABASE_TOKEN + '&table_name=' + table_name + '&array_of_fields=' + array_of_fields)
-    # Check response
-    if request.status_code != 200:
-        return 'Request Unsuccesful: ' + str(request.status_code)
-    else:
-        return request.content
+def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data):
 
+    url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
+
+    type_check = str(type(json_data))
+    if not "str" in type_check:
+        if "dict" in type_check:
+            json_data = json.dumps(json_data)
+        else:
+            raise Exception("Expecting json or dict object but got " + type_check + " instead")
+
+    querystring = { "token" : DATABASE_TOKEN, "table_name" : table_name, "key_field" : key_field,
+                   "key_string" : key_string }
+
+    payload = {'json_data' : json_data}
+    response = requests.post(url, data = payload, params = querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_delete_table(table_name):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_table%2A"
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name}
+
+    if table_name == "" or table_name.isspace():
+        raise Exception("Table name cannot be empty")
+
+    response = requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_delete_object(table_name,search_field,search_string):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_object%2A"
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
+                   "search_string": search_string}
+    if search_string == "" or search_string.isspace():
+        raise Exception("Cannot have empty search_string")
+
+    response = requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_add_new_field(table_name,field_name):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": field_name}
+
+    if field_name == "" or field_name.isspace():
+        raise Exception("Cannot have empty field name")
+
+    response = requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_rename_table(table_name, new_name):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Arename_table%2A"
+    querystring = { "token" : DATABASE_TOKEN, "table_name" : table_name, "new_table_name": new_name }
+
+    if new_name == "" or new_name.isspace():
+        raise Exception("New table name cannot be empty")
+
+    response =  requests.request("GET",url, params=querystring)
+
+    if "SUCCESS" in response.content:
+        return "SUCCESS " + table_name + " changed to " + new_name
+    else:
+        return requests.content
+
+def CHARLOTTE_DB_update_field_name(table_name, field_name, new_name):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
+                   "new_field_name" : new_name}
+
+    if new_name == "" or new_name.isspace():
+        raise Exception("New field name cannot be empty")
+
+    response = requests.request("GET", url, params=querystring)
+
+    if "SUCCESS" in response.content:
+        return "SUCCESS " + field_name + " changed to " + new_name
+    else:
+        return requests.content
+
+def CHARLOTTE_DB_search_partial_matches(table_name, field_name, search_string):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
+    querystring = {"token" : DATABASE_TOKEN, "table_name" : table_name, "field_name": field_name,
+                   "search_string": search_string}
+    if field_name == "" or field_name.isspace():
+        raise Exception("Cannot have empty field name")
+
+    response = requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_reinit():
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
+    querystring = {"token": DATABASE_TOKEN}
+
+    response = requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_get_status():
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Astatus%2A"
+    querystring = {"token": DATABASE_TOKEN }
+
+    response =  requests.request("GET", url, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
+
+    type_check = str(type(json_data))
+    if not "str" in type_check:
+        if "dict" in type_check:
+            json_data = json.dumps(json_data)
+        else:
+            raise Exception("Expecting json or dict object but got [" + type_check + "] instead")
+
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": key_field,
+                   "search_string": key_string}
+
+    payload = {'json_data': json_data}
+
+    response = requests.post(url, data=payload, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
+
+    type_check = str(type(json_data))
+    if not "str" in type_check:
+        if "dict" in type_check:
+            json_data = json.dumps(json_data)
+        else:
+            raise Exception("Expecting json or dict object but got [" + type_check + "] instead")
+
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "key_field": key_field,
+                   "key_string": key_string}
+
+    payload = {'json_data': json_data}
+
+    response = requests.post(url, data=payload, params=querystring)
+
+    return response.content
 
 if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
     print 'Please setup IP address of DB and Database Token in file charlotte_DB_SDK_config.py'
@@ -106,11 +231,10 @@ if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
 
 
 if __name__ == '__main__':
-    data = {"two": "Ginza", "three": "Como animales"}
-    data = json.dumps(data)
-    #print CHARLOTTE_DB_add_new_keyed_object("test_table", "one", "  JBALVIN", data)
-    print CHARLOTTE_DB_get_object("test_table","one","As")
-    print CHARLOTTE_DB_get_all_objects_json("test_table")
+    table = "dev_table"
+    data = {"red":"DANYHERE",'white': "Giza", "rose": "Como animales"}
+    #print CHARLOTTE_DB_update_object(table,key_field = "red", key_string = "TWOS",json_data = json.dumps(data))
+    print CHARLOTTE_DB_update_object(table,"red","TWOS",json.dumps(data))
 '''
 
 
