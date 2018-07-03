@@ -55,42 +55,21 @@ def py_matrix_to_str(matrix):
     col_delim = ' '
     row_delim = ';'
     if isinstance(matrix[0][0], float):
-        return row_delim.join(col_delim.join('%0.5f' % x for x in y) for y in matrix)
+        return "PYTHON_" + row_delim.join(col_delim.join('%0.5f' % x for x in y) for y in matrix)
     if isinstance(matrix[0][0], int):
-        return row_delim.join(col_delim.join('%0.0f' % x for x in y) for y in matrix)
+        return "PYTHON_" + row_delim.join(col_delim.join('%0.0f' % x for x in y) for y in matrix)
     if isinstance(matrix[0][0], str):
-        return row_delim.join(col_delim.join(x for x in y) for y in matrix)
+        return "PYTHON_" + row_delim.join(col_delim.join(x for x in y) for y in matrix)
     else:
-        return row_delim.join(col_delim.join(x for x in y) for y in matrix)
+        return "PYTHON_" + row_delim.join(col_delim.join(x for x in y) for y in matrix)
 
 
 def str_to_py_matrix(input_string):
-    rows = input_string.count(';')
-    if rows > 1:
-        rows += 1
-    columns = input_string.split(';')
-    columns = columns[0].split(' ')
-    columns = len(columns)
-    input_string = input_string.replace(';', ',')
-    input_string = input_string.replace(' ', ',')
-    # Check matrix that desired matrix is valid
-    if rows == 0 or columns == 0:
-        raise Exception('Expected valid matrix. ' + str(rows) + 'x' + str(columns) + ' matrix is not a valid.')
-    # Create matrix...
-    matrix = [0] * rows
-    for i in range(rows):
-        matrix[i] = [0] * columns
-    # Populate matrix...
-    data = input_string.split(',')
-    temp = 0
-    for row in range(0, rows):
-        for col in range(0, columns):
-            try:
-                matrix[row][col] = digit_float_str(data[temp])
-                temp += 1
-            except IndexError:
-                warnings.warn('String is smaller than matrix ... filling rest of matrix with 0\'s')
-    return matrix
+    if input_string[:6] == "PYTHON":
+        matrix = str_to_np_matrix(input_string)
+        return matrix
+    else:
+        return "String is not from a 2D list matrix string"
 
 
 def np_matrix_to_str(matrix):
@@ -111,18 +90,18 @@ def np_matrix_to_str(matrix):
                 matrix = row_delim.join(col_delim.join('%0.5f' % x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
                 matrix = matrix.replace(";;;", ";")
-                return matrix.replace(";.;", ".")
+                return "NUMPY_" + matrix.replace(";.;", ".")
             if 'int' in type:
                 matrix = row_delim.join(col_delim.join('%0.0f' % x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
-                return matrix
+                return "NUMPY_" + matrix
             if 'str' in type:
                 matrix = row_delim.join(col_delim.join(x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
                 matrix = matrix.replace(";;;", ";")
-                return matrix
+                return "NUMPY_" + matrix
             else:
-                return row_delim.join(col_delim.join(x for x in y) for y in matrix)
+                return "NUMPY_" + row_delim.join(col_delim.join(x for x in y) for y in matrix)
         else:
             raise Exception('Was expecting a numpy matrix. Got a ' + str(matrix.ndim) + 'D numpy instead')
     except TypeError:
@@ -130,6 +109,8 @@ def np_matrix_to_str(matrix):
 
 
 def str_to_np_matrix(input_str):
+    input_str = input_str.split('_')
+    input_str = input_str[1]
     if not isinstance(input_str, basestring):
         raise Exception("Was exprecting str but got " + str(type(input_str)) + " instead")
     try:
@@ -169,7 +150,7 @@ def tensor_to_str(tensor):
     type = tf.Variable(tensor)
     type = str(type.dtype)
     type = re.search("'(.*)'", type)
-    str_tensor = str_tensor + "_" + type.group(1)
+    str_tensor = str_tensor + "_" + type.group(1) + "_tensor"
     session.close()
     return str_tensor
 
@@ -178,6 +159,8 @@ def str_to_tensor(str_tensor):
     str_tensor = str_tensor.split('_')
     np_array = np.array(eval(str_tensor[0]))
     type = str_tensor[1]
+    if str_tensor[2] != "tensor":
+        return False
     tensor = tf.convert_to_tensor(np_array)
     tensor = tf.cast(tensor, eval(type))
     return tensor

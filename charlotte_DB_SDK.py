@@ -2,11 +2,18 @@ import urllib
 import urllib2
 import sys
 import os
-import requests
 import re
-from time import sleep
-from charlotte_DB_SDK_config import *
 import json
+import requests
+from time import sleep
+import tensorflow as tf
+from charlotte_DB_SDK_config import *
+from Matrix_def import *
+
+if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
+    print 'Please setup IP address of DB and Database Token in file charlotte_DB_SDK_config.py'
+    sleep(100)
+    sys.exit
 
 
 def CHARLOTTE_DB_get_table_names():
@@ -224,16 +231,83 @@ def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
 
     return response.content
 
-if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
-    print 'Please setup IP address of DB and Database Token in file charlotte_DB_SDK_config.py'
-    sleep(100)
-    sys.exit
+def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, matrix):
+
+    url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
+
+    type_check = str(type(matrix))
+    if "numpy.ndarray" in type_check:
+        matrix = np_matrix_to_str(matrix)
+    elif "list" in type_check:
+        matrix = py_matrix_to_str(matrix)
+    else:
+        raise Exception("Was expecting either a numpy matrix, list matrix, or a tensor but got " + type_check + " instead")
+
+    querystring = { "token" : DATABASE_TOKEN, "table_name" : table_name, "key_field" : key_field,
+                   "key_string" : key_string }
+
+    json_data = json.dumps({matrix_field: matrix})
+    payload = {"json_data": json_data}
+
+    response = requests.post(url, data = payload, params = querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
+
+    url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_object_data%2A"
+
+    querystring = {"token": DATABASE_TOKEN, "table_name" : table_name, "field_name" : search_field, "search_string" : search_string}
+
+    response = requests.request("GET", url, params=querystring)
+
+    try:
+        data = json.loads(response.content)
+        try:
+            data = data[0]
+            data = { key : value for item in data for key, value in item.items() }
+            matrix_str = data[matrix_field]
+            if matrix_str[:6] == "PYTHON":
+                matrix_str =  matrix_str.encode('ascii','ignore')
+                data = str_to_py_matrix(matrix_str)
+                return data
+            elif matrix_str[:5] == "NUMPY":
+                matrix_str = matrix_str.encode('ascii', 'ignore')
+                data = str_to_np_matrix(matrix_str)
+                return data
+            else:
+                raise Exception("Called object is not a matrix")
+        except KeyError:
+            raise Exception("Matrix field DNE")
+
+    except ValueError:
+        return response.content
+
+def CHARLOTTE_DB_add_tensor(table_name,search_field,search_string,matrix_field):
 
 
 if __name__ == '__main__':
-    table = "demo_table"
+
+    table = "dev_table"
+
+    matrix_1 = [[1,2],[3,7]]
+    matrix_2 = np.asarray([[1, 1, 2, 3, 4],  # 1st row
+                    [2, 6, 7, 8, 9],  # 2nd row
+                    [3, 6, 7, 8, 9],  # 3rd row
+                    [4, 6, 7, 8, 9],  # 4th row
+                    [5, 6, 7, 8, 9]]  # 5th row,
+                    , dtype=int64)
+    check = np_matrix_to_str(matrix_2)
+    print('\n--------------------- From DB ---------------------\n')
+    print 'Getting list based matrix: \n'
+    print CHARLOTTE_DB_get_matrix(table, "red", "one", "white")
+    print '\nGetting numpy based matrix: \n'
+    print CHARLOTTE_DB_get_matrix(table, "red", "two", "white")
+    print('\n------- Checking converter functionality --------\n')
+    print str_to_np_matrix(check)
 
     '''
+    #SDK Testing v1.0.0
     print 'Begin testing....'
 
     print '-------------------\nCreating table...'
@@ -281,97 +355,3 @@ if __name__ == '__main__':
     print '\nThat\'s it (: (: (: '
     
     '''
-'''
-
-
-
-
-
-if '*get_object_data*' in command_string:
-    DB_table_name = request.args.get('table_name', '')
-    field_name = request.args.get('field_name', '')
-    search_string = request.args.get('search_string', '')
-    print DB_table_name
-    print field_name
-    return str(get_object_data(DB_table_name,field_name, search_string))
-
-if '*get_fields*' in command_string:
-
-    table_name = request.args.get('table_name', '')
-    print table_name
-    return str(get_fields(table_name))
-
-if '*get_partial_object_data*' in command_string:
-    DB_table_name = request.args.get('table_name', '')
-    field_name = request.args.get('field_name', '')
-    search_string = request.args.get('search_string', '')
-    print DB_table_name
-    print field_name
-    return str(get_partial_object_data(DB_table_name,field_name, search_string))
-
-if '*delete_object*' in command_string:
-    print 'here in delete object'
-    DB_table_name = request.args.get('table_name', '')
-    field_name = request.args.get('field_name', '')
-    search_string = request.args.get('search_string', '')
-    print DB_table_name
-    print field_name
-    result = delete_object(DB_table_name,field_name, search_string)
-    slack_db('XXX saving for testing in production need take these out ')
-    save_all_DB()
-    return 'number objects deleted: '+ str(result)
-
-if '*update_DB_charlotte_json*' in command_string:
-    print 'here in update_DB_charlotte_json '
-    DB_table_name = request.args.get('table_name', '')
-    search_field = request.args.get('field_name', '')
-    search_string = request.args.get('search_string', '')
-    charlotte_structure_raw = request.args.get('json_data', '')
-    print DB_table_name
-    print search_field
-    charlotte_structure = str(charlotte_structure_raw)
-    result = update_DB_charlotte_struct_json(DB_table_name, search_field, search_string ,charlotte_structure)
-    slack_db('XXX saving for testing in production need take these out ')
-    save_all_DB()
-    return 'updating DB: '+ str(result)
-
-if '*create_table*' in command_string:
-    print 'here in create_table'
-    DB_table_name = request.args.get('table_name', '')
-    array_of_fields_raw = request.args.get('array_of_fields', '')
-    array_of_fields = parse_1_array(array_of_fields_raw)
-
-    print array_of_fields
-
-    if len(array_of_fields) < 1:
-        return 'ERROR FIELDS'
-
-    if 'ERROR parsing data fdv799' in str(array_of_fields):
-        return 'ERROR parsing data fdv799'
-
-    print 'raw data: ' + str(array_of_fields_raw)
-    print 'new array of fields: ' + str(array_of_fields)
-
-    result = create_table(DB_table_name, array_of_fields)
-    return result
-
-
-if '*add_new_object_NOuniqueKey_json*' in command_string:
-    print 'here in add_new_object_uniqueKey_json '
-    DB_table_name = request.args.get('table_name', '')
-    charlotte_structure_raw = request.args.get('json_data', '')
-    charlotte_structure = str(charlotte_structure_raw)
-    result = add_new_object_to_table_NOuniqueKey_struct_json(DB_table_name,charlotte_structure)  #this can process a json string and update
-
-    slack_db('XXX saving for testing in production need take these out ')
-    save_all_DB()
-    return result
-
-if '*delete_table*' in command_string:
-    print 'here in delete_table '
-    DB_table_name = request.args.get('table_name', '')
-    result = delete_table(DB_table_name)  #this can process a json string and update
-    slack_db('XXX saving for testing in production need take these out ')
-    save_all_DB()
-    return result
-'''
