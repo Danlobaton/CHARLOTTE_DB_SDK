@@ -231,10 +231,56 @@ if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
 
 
 if __name__ == '__main__':
-    table = "dev_table"
-    data = {"red":"DANYHERE",'white': "Giza", "rose": "Como animales"}
-    #print CHARLOTTE_DB_update_object(table,key_field = "red", key_string = "TWOS",json_data = json.dumps(data))
-    print CHARLOTTE_DB_update_object(table,"red","TWOS",json.dumps(data))
+    table = "demo_table"
+
+    '''
+    print 'Begin testing....'
+
+    print '-------------------\nCreating table...'
+    print CHARLOTTE_DB_create_table(table,["red","white","rose"])
+
+    print '-------------------\nGetting all tables in DB...'
+    print CHARLOTTE_DB_get_table_names()
+
+    print '-------------------\nGetting DB status...'
+    print CHARLOTTE_DB_get_status()
+
+    print '-------------------\nAdding unique key object...'
+    data = {"white" : "Jamon","rose" : "Champagne"}
+    print CHARLOTTE_DB_add_new_keyed_object(table, "red", "Ferrari", json.dumps(data))
+
+    print '-------------------\nAdding NO unique key object...'
+    data = {"white" : "Lambo", "rose" : "Huracan"}
+    print CHARLOTTE_DB_add_object_noKey(table, "red", "Green", json.dumps(data))
+
+    print '-------------------\nRetriving all objects from table...'
+    print CHARLOTTE_DB_get_all_objects_json(table)
+
+    print '-------------------\nUpdating object in table...'
+    data = {"red" : "Quantum", "white" : "Dope", "rose" : " Supreme " }
+    print CHARLOTTE_DB_update_object(table,"red","Ferrari",json.dumps(data))
+
+    print '-------------------\nGetting single object data from updated object...'
+    print CHARLOTTE_DB_get_object(table,"white","Dope")
+
+    print '-------------------\nAdding field to table...'
+    print CHARLOTTE_DB_add_new_field(table,"Gray")
+
+    print '-------------------\nGetting table fields...'
+    print CHARLOTTE_DB_get_table_fields(table)
+
+    print '-------------------\nDeleting object from DB...'
+    print CHARLOTTE_DB_delete_object(table, "white", "Dope")
+
+    print '-------------------\nRetriving all objects from table...'
+    print CHARLOTTE_DB_get_all_objects_json(table)
+
+    print '-------------------\nDeleting table...'
+    print CHARLOTTE_DB_delete_table(table)
+
+    print '\nThat\'s it (: (: (: '
+    
+    '''
 '''
 
 
