@@ -11,8 +11,8 @@ def CHARLOTTE_DB_get_table_names():
     querystring = { "token" : DATABASE_TOKEN }
 
     response = requests.request("GET", url, params=querystring)
-
-    return response.text
+    names = eval(response.content)
+    return names
 #Returns a list of dicts
 def CHARLOTTE_DB_get_table_fields(table_name):
 
@@ -37,12 +37,12 @@ def CHARLOTTE_DB_get_all_objects_json(table_name):
     try:
         data = json.loads(response.content)
         for index in range(0, len(data)):
-            data[index] = {key: value for item in data[index] for key, value in item.items()}
+            data[index] = { key: value for item in data[index] for key, value in item.items() }
         return data
     except ValueError:
         return response.content
 
-def CHARLOTTE_DB_create_table(table_name,array_of_fields):
+def CHARLOTTE_DB_create_table(table_name, array_of_fields):
     #Check for duplicates
     if len(array_of_fields) != len(set(array_of_fields)):
         raise Exception("Cannot have duplicate table fields")
@@ -69,9 +69,10 @@ def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
     response = requests.request("GET", url, params=querystring)
 
     try:
-        datathis = json.loads(response.content)
-        return datathis
-
+        data = json.loads(response.content)
+        for index in range(0,len(data)):
+            data = { key : value for item in data[index] for key, value in item.items() }
+        return data
     except ValueError:
         return response.content
 
@@ -323,7 +324,7 @@ def CHARLOTTE_DB_get_object_count(table_name):
 
 if __name__ == '__main__':
     table = "dev_table"
-    print CHARLOTTE_DB_get_object_count(table)
+    print CHARLOTTE_DB_get_object(table,"red","some_tensor")
 
 '''    
     #SDK Testing v1.0.0
