@@ -1,20 +1,7 @@
-from numpy import *
-import numpy as np
-import warnings
-import tensorflow as tf
 import re
-
-'''
-    py_matrix_to_str(matrix) - converts matrix to string (in native python)
-    str_to_py_matrix(str) - python matrix to string (native python)
-    np_matrix_to_str(matrix) - numpy matrix to string
-    str_to_np_matrix(str)- str to numpy matrix
-    tensor_to_str(tensor) - TensorFlow tensor to string
-    str_to_tensor(str) - string to tensor
-
-    (: (:
-'''
-
+from numpy import ndarray
+import numpy as np
+import tensorflow as tf
 
 def digit_float_str(str):
     try:

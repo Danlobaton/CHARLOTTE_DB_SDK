@@ -1,8 +1,3 @@
-import urllib
-import urllib2
-import sys
-import os
-import re
 import json
 import requests
 from time import sleep
@@ -26,7 +21,7 @@ def CHARLOTTE_DB_get_table_names():
 
     return response.text
 
-#Returns a list
+#Returns a list of dicts
 def CHARLOTTE_DB_get_table_fields(table_name):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_fields%2A"
@@ -48,7 +43,10 @@ def CHARLOTTE_DB_get_all_objects_json(table_name):
 
     response = requests.request("GET", url, params=querystring)
     try:
-        return json.loads(response.content)
+        data = json.loads(response.content)
+        for index in range(0, len(data)):
+            data[index] = {key: value for item in data[index] for key, value in item.items()}
+        return data
     except ValueError:
         return response.content
 
@@ -327,9 +325,17 @@ def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_fie
     except ValueError:
         return response.content
 
+def CHARLOTTE_DB_get_object_count(table_name):
+    data = CHARLOTTE_DB_get_all_objects_json(table_name)
+    return len(data)
+
 if __name__ == '__main__':
     table = "dev_table"
+    print CHARLOTTE_DB_get_object_count(table)
 
+'''    
+    #SDK Testing v1.1.0
+    
     print '\n------- Input Tensor --------\n'
     sess = tf.Session()
     b = tf.constant(np.arange(13.25, 20.5, dtype=np.float32), shape=[3, 3, 2])
@@ -338,11 +344,9 @@ if __name__ == '__main__':
     print('\n--------------------- Tensor from DB ---------------------\n')
     tensor = CHARLOTTE_DB_get_tensor(table,"red","some_tensor","white")
     print(sess.run(tensor))
-
-'''    
-    #SDK Testing v1.1.0
     
-    print('\n--------------------- From DB ---------------------\n')
+    
+    print('\n--------------------- Matrix from DB ---------------------\n')
     print 'Getting list based matrix: \n'
     print CHARLOTTE_DB_get_matrix(table, "red", "one", "white")
     print '\nGetting numpy based matrix: \n'
