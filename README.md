@@ -32,8 +32,8 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
                - key_string <string> : key string to be used in the key field
                - json_data <dict> : JSON containing the object data
       * return: `SUCCESS` if operation was successful else it returns an error message
-      * example:
-                 
+      * example: 
+
                   table_name = "demo_table"
                   key_field = "field_1"
                   key_string = "mykey"
@@ -42,6 +42,7 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
                   json_data = { "field_2" : "data", "field_3" : "data" }
                   CHARLOTTE_DB_add_new_keyed_object(table_name, key_field, key_string, json_data)
                   # returns "SUCCESS"
+
  2. CHARLOTTE_DB_add_object_noKey(table_name, key_field, key_string, json_data)
      * Note: Hyper-fast but potentially dangerous since the object is not keyed
      * params:
@@ -49,7 +50,7 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
                - key_field <string> : Field in the table to be used as a search field for the object later
                - key_string <string> : key string to be used in the key field
                - json_data <dict> : JSON containing the object data
-      * return: `SUCCESS` if operation was successful else it returns an error message
+      * return: `SUCCESS` if operatiogit n was successful else it returns an error message
       * example:
                  
                   table_name = "demo_table"
