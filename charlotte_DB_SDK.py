@@ -1,15 +1,8 @@
 import json
 import requests
-from time import sleep
 import tensorflow as tf
 from charlotte_DB_SDK_config import *
 from Matrix_def import *
-
-if IP_ADDRESS_DB == 'XXX PLEASE SETUP' or DATABASE_TOKEN == 'XXX PLEASE SETUP':
-    print 'Please setup IP address of DB and Database Token in file charlotte_DB_SDK_config.py'
-    sleep(100)
-    sys.exit
-
 
 def CHARLOTTE_DB_get_table_names():
 
@@ -20,7 +13,6 @@ def CHARLOTTE_DB_get_table_names():
     response = requests.request("GET", url, params=querystring)
 
     return response.text
-
 #Returns a list of dicts
 def CHARLOTTE_DB_get_table_fields(table_name):
 
@@ -334,7 +326,7 @@ if __name__ == '__main__':
     print CHARLOTTE_DB_get_object_count(table)
 
 '''    
-    #SDK Testing v1.1.0
+    #SDK Testing v1.0.0
     
     print '\n------- Input Tensor --------\n'
     sess = tf.Session()
