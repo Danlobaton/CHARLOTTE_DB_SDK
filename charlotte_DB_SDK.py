@@ -4,6 +4,7 @@ import tensorflow as tf
 from charlotte_DB_SDK_config import *
 from Matrix_def import *
 
+#In Docs
 def CHARLOTTE_DB_get_table_names():
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_table_names%2A"
@@ -13,7 +14,7 @@ def CHARLOTTE_DB_get_table_names():
     response = requests.request("GET", url, params=querystring)
     names = eval(response.content)
     return names
-#Returns a list of dicts
+#In Docs
 def CHARLOTTE_DB_get_table_fields(table_name):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_fields%2A"
@@ -26,7 +27,7 @@ def CHARLOTTE_DB_get_table_fields(table_name):
     fields = fields.split(",")
 
     return fields
-
+#In Docs
 def CHARLOTTE_DB_get_all_objects_json(table_name):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_partial_object_data%2A"
@@ -41,7 +42,7 @@ def CHARLOTTE_DB_get_all_objects_json(table_name):
         return data
     except ValueError:
         return response.content
-
+#In Docs
 def CHARLOTTE_DB_create_table(table_name, array_of_fields):
     #Check for duplicates
     if len(array_of_fields) != len(set(array_of_fields)):
@@ -59,7 +60,7 @@ def CHARLOTTE_DB_create_table(table_name, array_of_fields):
         return 'Request Unsuccessful: ' + str(request.status_code)
     else:
         return request.content
-
+#In Docs
 def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_object_data%2A"
@@ -75,7 +76,7 @@ def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
         return data
     except ValueError:
         return response.content
-
+#In Docs
 def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
@@ -94,7 +95,7 @@ def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data)
     response = requests.post(url, data = payload, params = querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_delete_table(table_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_table%2A"
     querystring = {"token": DATABASE_TOKEN, "table_name": table_name}
@@ -105,7 +106,7 @@ def CHARLOTTE_DB_delete_table(table_name):
     response = requests.request("GET", url, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_delete_object(table_name,search_field,search_string):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_object%2A"
     querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
@@ -116,7 +117,7 @@ def CHARLOTTE_DB_delete_object(table_name,search_field,search_string):
     response = requests.request("GET", url, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_add_new_field(table_name,field_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
     querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": field_name}
@@ -127,7 +128,7 @@ def CHARLOTTE_DB_add_new_field(table_name,field_name):
     response = requests.request("GET", url, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_rename_table(table_name, new_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Arename_table%2A"
     querystring = { "token" : DATABASE_TOKEN, "table_name" : table_name, "new_table_name": new_name }
@@ -141,7 +142,7 @@ def CHARLOTTE_DB_rename_table(table_name, new_name):
         return "SUCCESS " + table_name + " changed to " + new_name
     else:
         return requests.content
-
+#In Docs
 def CHARLOTTE_DB_update_field_name(table_name, field_name, new_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
     querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
@@ -156,7 +157,7 @@ def CHARLOTTE_DB_update_field_name(table_name, field_name, new_name):
         return "SUCCESS " + field_name + " changed to " + new_name
     else:
         return requests.content
-
+#In Docs
 def CHARLOTTE_DB_search_partial_matches(table_name, field_name, search_string):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
     querystring = {"token" : DATABASE_TOKEN, "table_name" : table_name, "field_name": field_name,
@@ -167,7 +168,7 @@ def CHARLOTTE_DB_search_partial_matches(table_name, field_name, search_string):
     response = requests.request("GET", url, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_reinit():
     url = "http://" + IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
     querystring = {"token": DATABASE_TOKEN}
@@ -175,7 +176,7 @@ def CHARLOTTE_DB_reinit():
     response = requests.request("GET", url, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
 
@@ -194,7 +195,7 @@ def CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data):
     response = requests.post(url, data=payload, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
 
@@ -213,7 +214,7 @@ def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
     response = requests.post(url, data=payload, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, matrix):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
@@ -235,7 +236,7 @@ def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, mat
     response = requests.post(url, data = payload, params = querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
 
@@ -253,7 +254,7 @@ def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, te
     response = requests.post(url, data=payload, params=querystring)
 
     return response.content
-
+#In Docs
 def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_object_data%2A"
@@ -283,7 +284,7 @@ def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
 
     except ValueError:
         return response.content
-
+#In Docs
 def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_field):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 
@@ -309,11 +310,11 @@ def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_fie
 
     except ValueError:
         return response.content
-
+#In Docs
 def CHARLOTTE_DB_get_object_count(table_name):
     data = CHARLOTTE_DB_get_all_objects_json(table_name)
     return len(data)
-
+#In Docs
 def CHARLOTTE_DB_get_status():
     url = "http://" + IP_ADDRESS_DB + "/db/%2Astatus%2A"
     querystring = {"token": DATABASE_TOKEN }

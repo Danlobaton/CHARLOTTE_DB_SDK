@@ -53,7 +53,7 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
       * table_name < string >
       * search_field < string > : Table field to be searched in the DB
       * search_string < string > : String to be searched for in the specified field in order to locate the desired object
-      * matrix_field < string > : Table field in which the tensor is located
+      * matrix_field < string > : Table field in which the matrix is located
     * return: A numpy matrix / list matrix (depends on what was originally inserted into the table)
 ### DB Data Management
  1. CHARLOTTE_DB_add_new_keyed_object(table_name, key_field, key_string, json_data)
@@ -98,6 +98,32 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
          * search_field <string> : Table field to be searched in the DB
          * search_string <string> : String to be searched for in the specified field of the table
       * return: `SUCCESS` if operation was successful else it returns an error message
+ 4. CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, matrix)
+      * Note : This is being inserted as a keyed object for safety reasons
+      * params:
+         * table_name < string >
+         * key_field < string > : Field in the table in in which key string is going to be inserted for the object 
+         * key_string < string > : String to be searched for in the specified field in order to later locate the object currently being inserted in the table
+         * matrix_field < string > : Table field in which the input matrix will be located
+         * matrix < numpy / list > : Input matrix
+      * return: `SUCCESS` if operation was successful else it returns an error message
+  5. CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor)
+      * Note : This is being inserted as a keyed object for safety reasons
+      * params:
+         * table_name < string >
+         * key_field < string > : Field in the table in in which key string is going to be inserted for the object 
+         * key_string < string > : String to be searched for in the specified field in order to later locate the object currently being inserted in the table
+         * tensor_field < string > : Table field in which the input tensor will be located
+         * matrix < tensor > : Input tensor
+      * return: `SUCCESS` if operation was successful else it returns an error message
+  6. CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data)
+      * Note : Only Key : Value pairs used in `json_data` will be the only ones updated in the desired object. Any other fields fields key : value pairs that are currently in the target object to be updated that are leftout of `json_data` will be left as is in the object
+      * params:
+         * table_name < string >
+         * key_field < string > : Key field of object to be updated
+         * key_string < string > : search string to be use to locate desired object to be updated
+         * json_data < dict > : JSON data to be use to update the desired object (Note : Make sure JSON structure follows that of the object)
+      * return: `SUCCESS` if operation was successful else it returns an error message
 ### General DB management
  1. CHARLOTTE_DB_create_table(table_name, array_of_fields)
     * params:
@@ -108,7 +134,17 @@ Go to the charlotte_DB_SDK_config.py and entern the IP address of the DB and the
     * params:
        * table_name < string >
     * return: `SUCCESS` if operation was successful else it returns an error message
- 3. CHARLOTTE_DB_delete_table(table_name)
+ 3. CHARLOTTE_DB_reinit()
+    * Note: Reinitializes and backups database
+    * params: None
+    * return: `SUCCESS` if operation was successful else it returns an error message
+ 4 CHARLOTTE_DB_rename_table(table_name, new_name)
+    * params:
+       * table_name < string > : Current table name
+       * new_name < string > : New table name to be set
+    * return: `SUCCESS` if operation was successful else it returns an error message
+ 5. CHARLOTTE_DB_add_new_field(table_name,field_name)
     * params:
        * table_name < string >
+       * new_name < string > : New field to be added to the specified table
     * return: `SUCCESS` if operation was successful else it returns an error message
