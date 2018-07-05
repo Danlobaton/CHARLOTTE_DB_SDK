@@ -176,14 +176,6 @@ def CHARLOTTE_DB_reinit():
 
     return response.content
 
-def CHARLOTTE_DB_get_status():
-    url = "http://" + IP_ADDRESS_DB + "/db/%2Astatus%2A"
-    querystring = {"token": DATABASE_TOKEN }
-
-    response =  requests.request("GET", url, params=querystring)
-
-    return response.content
-
 def CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
 
@@ -244,6 +236,24 @@ def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, mat
 
     return response.content
 
+def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
+
+    type_check = str(type(tensor))
+    if "tensorflow" not in type_check:
+        raise Exception("Was a expecting a tensor but got a " + type_check + " instead")
+
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "key_field": key_field,
+                   "key_string": key_string }
+
+    tensor = tensor_to_str(tensor)
+    json_data = json.dumps({tensor_field : tensor})
+    payload = {"json_data": json_data}
+
+    response = requests.post(url, data=payload, params=querystring)
+
+    return response.content
+
 def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aget_object_data%2A"
@@ -274,24 +284,6 @@ def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
     except ValueError:
         return response.content
 
-def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor):
-    url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
-
-    type_check = str(type(tensor))
-    if "tensorflow" not in type_check:
-        raise Exception("Was a expecting a tensor but got a " + type_check + " instead")
-
-    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "key_field": key_field,
-                   "key_string": key_string }
-
-    tensor = tensor_to_str(tensor)
-    json_data = json.dumps({tensor_field : tensor})
-    payload = {"json_data": json_data}
-
-    response = requests.post(url, data=payload, params=querystring)
-
-    return response.content
-
 def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_field):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 
@@ -321,6 +313,14 @@ def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_fie
 def CHARLOTTE_DB_get_object_count(table_name):
     data = CHARLOTTE_DB_get_all_objects_json(table_name)
     return len(data)
+
+def CHARLOTTE_DB_get_status():
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Astatus%2A"
+    querystring = {"token": DATABASE_TOKEN }
+
+    response =  requests.request("GET", url, params=querystring)
+
+    return response.content
 
 if __name__ == '__main__':
     table = "dev_table"
