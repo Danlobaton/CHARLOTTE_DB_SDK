@@ -159,8 +159,8 @@ def str_to_tensor(str_tensor):
     str_tensor = str_tensor.split('_')
     np_array = np.array(eval(str_tensor[0]))
     type = str_tensor[1]
-    if str_tensor[2] != "tensor":
-        return False
+    if str_tensor[3] != "tensor":
+        raise Exception("String is not a tensor")
     tensor = tf.convert_to_tensor(np_array)
     tensor = tf.cast(tensor, eval(type))
     return tensor
@@ -318,4 +318,4 @@ if __name__ == '__main__':
     print 'Tensor from String: \n' + str(sess.run(c))
     print 'Generated Tensor info: ' + str(c)
     sess.close() 
-    '''
+'''

@@ -283,21 +283,65 @@ def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
     except ValueError:
         return response.content
 
-def CHARLOTTE_DB_add_tensor(table_name,search_field,search_string,matrix_field):
+def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
 
+    type_check = str(type(tensor))
+    if "tensorflow" not in type_check:
+        raise Exception("Was a expecting a tensor but got a " + type_check + " instead")
+
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "key_field": key_field,
+                   "key_string": key_string }
+
+    tensor = tensor_to_str(tensor)
+    json_data = json.dumps({tensor_field : tensor})
+    payload = {"json_data": json_data}
+
+    response = requests.post(url, data=payload, params=querystring)
+
+    return response.content
+
+def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_field):
+    url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
+
+    querystring = {"token": DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
+                   "search_string": search_string}
+
+    response = requests.request("GET", url, params=querystring)
+
+    try:
+        data = json.loads(response.content)
+        try:
+            data = data[0]
+            data = { key : value for item in data for key, value in item.items() }
+            tensor_str = data[tensor_field]
+            if "tensor" in tensor_str:
+                tensor = tensor_str.encode('ascii', 'ignore')
+                tensor = str_to_tensor(tensor)
+                return tensor
+            else:
+                raise Exception("Called object is not a tensor")
+        except KeyError:
+            raise Exception("Tensor field DNE")
+
+    except ValueError:
+        return response.content
 
 if __name__ == '__main__':
-
     table = "dev_table"
 
-    matrix_1 = [[1,2],[3,7]]
-    matrix_2 = np.asarray([[1, 1, 2, 3, 4],  # 1st row
-                    [2, 6, 7, 8, 9],  # 2nd row
-                    [3, 6, 7, 8, 9],  # 3rd row
-                    [4, 6, 7, 8, 9],  # 4th row
-                    [5, 6, 7, 8, 9]]  # 5th row,
-                    , dtype=int64)
-    check = np_matrix_to_str(matrix_2)
+    print '\n------- Input Tensor --------\n'
+    sess = tf.Session()
+    b = tf.constant(np.arange(13.25, 20.5, dtype=np.float32), shape=[3, 3, 2])
+    print(sess.run(b))
+
+    print('\n--------------------- Tensor from DB ---------------------\n')
+    tensor = CHARLOTTE_DB_get_tensor(table,"red","some_tensor","white")
+    print(sess.run(tensor))
+
+'''    
+    #SDK Testing v1.1.0
+    
     print('\n--------------------- From DB ---------------------\n')
     print 'Getting list based matrix: \n'
     print CHARLOTTE_DB_get_matrix(table, "red", "one", "white")
@@ -306,8 +350,8 @@ if __name__ == '__main__':
     print('\n------- Checking converter functionality --------\n')
     print str_to_np_matrix(check)
 
-    '''
     #SDK Testing v1.0.0
+    
     print 'Begin testing....'
 
     print '-------------------\nCreating table...'
@@ -353,5 +397,4 @@ if __name__ == '__main__':
     print CHARLOTTE_DB_delete_table(table)
 
     print '\nThat\'s it (: (: (: '
-    
-    '''
+'''
