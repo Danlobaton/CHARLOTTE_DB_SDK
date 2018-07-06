@@ -1,6 +1,5 @@
 import json
 import requests
-import tensorflow as tf
 from charlotte_DB_SDK_config import *
 from Matrix_def import *
 
@@ -22,7 +21,10 @@ def CHARLOTTE_DB_get_table_fields(table_name):
     querystring = { "token" : DATABASE_TOKEN , "table_name":table_name}
 
     response =  requests.request("GET",url,params=querystring)
-
+    #Check if response went as planned
+    if response.status_code != 200:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
+    #Parse response content and turn it into a list
     fields = re.sub("[\[\]\"]", "", response.text)
     fields = fields.split(",")
 
@@ -35,13 +37,19 @@ def CHARLOTTE_DB_get_all_objects_json(table_name):
     querystring = {"token" : DATABASE_TOKEN,"table_name" : table_name,"field_name": fields[0],"search_string" : ""}
 
     response = requests.request("GET", url, params=querystring)
-    try:
-        data = json.loads(response.content)
-        for index in range(0, len(data)):
-            data[index] = { key: value for item in data[index] for key, value in item.items() }
-        return data
-    except ValueError:
-        return response.content
+    #Check request status and proceed with data parsing if successful
+    if response.status_code == 200:
+        try:
+            data = json.loads(response.content)
+            for index in range(0, len(data)):
+                #list comprehension
+                data[index] = { key: value for item in data[index] for key, value in item.items() }
+            return data
+        #Returns API response if there're no object in DB or other API err message
+        except ValueError:
+            return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_create_table(table_name, array_of_fields):
     #Check for duplicates
@@ -68,19 +76,22 @@ def CHARLOTTE_DB_get_object(table_name,search_field,search_string):
     querystring = {"token": DATABASE_TOKEN, "table_name" : table_name, "field_name" : search_field, "search_string" : search_string}
 
     response = requests.request("GET", url, params=querystring)
-
-    try:
-        data = json.loads(response.content)
-        for index in range(0,len(data)):
-            data = { key : value for item in data[index] for key, value in item.items() }
-        return data
-    except ValueError:
-        return response.content
+    #Check request status
+    if response.status_code == 200:
+        #If object exists parse and return it
+        try:
+            data = json.loads(response.content)
+            for index in range(0,len(data)):
+                data = { key : value for item in data[index] for key, value in item.items() }
+            return data
+        #Obj DNE return API response
+        except ValueError:
+            return response.content
 #In Docs
 def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data):
 
     url = "http://"+IP_ADDRESS_DB+"/db/%2Aadd_new_object_uniqueKey_json%2A"
-
+    #Check that user inpu for json is either json or a dict
     type_check = str(type(json_data))
     if not "str" in type_check:
         if "dict" in type_check:
@@ -94,7 +105,10 @@ def CHARLOTTE_DB_add_new_keyed_object(table_name,key_field,key_string,json_data)
     payload = {'json_data' : json_data}
     response = requests.post(url, data = payload, params = querystring)
 
-    return response.content
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_delete_table(table_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_table%2A"
@@ -104,8 +118,12 @@ def CHARLOTTE_DB_delete_table(table_name):
         raise Exception("Table name cannot be empty")
 
     response = requests.request("GET", url, params=querystring)
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 
-    return response.content
 #In Docs
 def CHARLOTTE_DB_delete_object(table_name,search_field,search_string):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Adelete_object%2A"
@@ -115,8 +133,11 @@ def CHARLOTTE_DB_delete_object(table_name,search_field,search_string):
         raise Exception("Cannot have empty search_string")
 
     response = requests.request("GET", url, params=querystring)
-
-    return response.content
+    #Check if request succeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_add_new_field(table_name,field_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
@@ -126,8 +147,11 @@ def CHARLOTTE_DB_add_new_field(table_name,field_name):
         raise Exception("Cannot have empty field name")
 
     response = requests.request("GET", url, params=querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_rename_table(table_name, new_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Arename_table%2A"
@@ -137,11 +161,15 @@ def CHARLOTTE_DB_rename_table(table_name, new_name):
         raise Exception("New table name cannot be empty")
 
     response =  requests.request("GET",url, params=querystring)
-
-    if "SUCCESS" in response.content:
-        return "SUCCESS " + table_name + " changed to " + new_name
+    # Check if request succeeded
+    if response.status_code == 200:
+        if "SUCCESS" in response.content:
+            #Format name change
+            return "SUCCESS " + table_name + " changed to " + new_name
+        else:
+            return requests.content
     else:
-        return requests.content
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_update_field_name(table_name, field_name, new_name):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
@@ -152,11 +180,13 @@ def CHARLOTTE_DB_update_field_name(table_name, field_name, new_name):
         raise Exception("New field name cannot be empty")
 
     response = requests.request("GET", url, params=querystring)
-
-    if "SUCCESS" in response.content:
-        return "SUCCESS " + field_name + " changed to " + new_name
+    if response.status_code == 200:
+        if "SUCCESS" in response.content:
+            return "SUCCESS " + field_name + " changed to " + new_name
+        else:
+            return requests.content
     else:
-        return requests.content
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_search_partial_matches(table_name, field_name, search_string):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
@@ -166,8 +196,11 @@ def CHARLOTTE_DB_search_partial_matches(table_name, field_name, search_string):
         raise Exception("Cannot have empty field name")
 
     response = requests.request("GET", url, params=querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_reinit():
     url = "http://" + IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
@@ -193,8 +226,11 @@ def CHARLOTTE_DB_update_object(table_name,key_field,key_string,json_data):
     payload = {'json_data': json_data}
 
     response = requests.post(url, data=payload, params=querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
@@ -212,8 +248,11 @@ def CHARLOTTE_DB_add_object_noKey(table_name,key_field,key_string,json_data):
     payload = {'json_data': json_data}
 
     response = requests.post(url, data=payload, params=querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, matrix):
 
@@ -234,8 +273,11 @@ def CHARLOTTE_DB_add_matrix(table_name, key_field, key_string, matrix_field, mat
     payload = {"json_data": json_data}
 
     response = requests.post(url, data = payload, params = querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, tensor):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
@@ -252,8 +294,11 @@ def CHARLOTTE_DB_add_tensor( table_name, key_field, key_string, tensor_field, te
     payload = {"json_data": json_data}
 
     response = requests.post(url, data=payload, params=querystring)
-
-    return response.content
+    # Check if request succeeded
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
 
@@ -262,28 +307,30 @@ def CHARLOTTE_DB_get_matrix(table_name,search_field,search_string,matrix_field):
     querystring = {"token": DATABASE_TOKEN, "table_name" : table_name, "field_name" : search_field, "search_string" : search_string}
 
     response = requests.request("GET", url, params=querystring)
-
-    try:
-        data = json.loads(response.content)
+    if response.status_code == 200:
         try:
-            data = data[0]
-            data = { key : value for item in data for key, value in item.items() }
-            matrix_str = data[matrix_field]
-            if matrix_str[:6] == "PYTHON":
-                matrix_str =  matrix_str.encode('ascii','ignore')
-                data = str_to_py_matrix(matrix_str)
-                return data
-            elif matrix_str[:5] == "NUMPY":
-                matrix_str = matrix_str.encode('ascii', 'ignore')
-                data = str_to_np_matrix(matrix_str)
-                return data
-            else:
-                raise Exception("Called object is not a matrix")
-        except KeyError:
-            raise Exception("Matrix field DNE")
+            data = json.loads(response.content)
+            try:
+                data = data[0]
+                data = { key : value for item in data for key, value in item.items() }
+                matrix_str = data[matrix_field]
+                if matrix_str[:6] == "PYTHON":
+                    matrix_str =  matrix_str.encode('ascii','ignore')
+                    data = str_to_py_matrix(matrix_str)
+                    return data
+                elif matrix_str[:5] == "NUMPY":
+                    matrix_str = matrix_str.encode('ascii', 'ignore')
+                    data = str_to_np_matrix(matrix_str)
+                    return data
+                else:
+                    raise Exception("Called object is not a matrix")
+            except KeyError:
+                raise Exception("Matrix field DNE")
 
-    except ValueError:
-        return response.content
+        except ValueError:
+            return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_field):
     url = "http://" + IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
@@ -292,24 +339,26 @@ def CHARLOTTE_DB_get_tensor( table_name, search_field, search_string, tensor_fie
                    "search_string": search_string}
 
     response = requests.request("GET", url, params=querystring)
-
-    try:
-        data = json.loads(response.content)
+    if response.status_code:
         try:
-            data = data[0]
-            data = { key : value for item in data for key, value in item.items() }
-            tensor_str = data[tensor_field]
-            if "tensor" in tensor_str:
-                tensor = tensor_str.encode('ascii', 'ignore')
-                tensor = str_to_tensor(tensor)
-                return tensor
-            else:
-                raise Exception("Called object is not a tensor")
-        except KeyError:
-            raise Exception("Tensor field DNE")
+            data = json.loads(response.content)
+            try:
+                data = data[0]
+                data = { key : value for item in data for key, value in item.items() }
+                tensor_str = data[tensor_field]
+                if "tensor" in tensor_str:
+                    tensor = tensor_str.encode('ascii', 'ignore')
+                    tensor = str_to_tensor(tensor)
+                    return tensor
+                else:
+                    raise Exception("Called object is not a tensor")
+            except KeyError:
+                raise Exception("Tensor field DNE")
 
-    except ValueError:
-        return response.content
+        except ValueError:
+            return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 #In Docs
 def CHARLOTTE_DB_get_object_count(table_name):
     data = CHARLOTTE_DB_get_all_objects_json(table_name)
@@ -320,8 +369,11 @@ def CHARLOTTE_DB_get_status():
     querystring = {"token": DATABASE_TOKEN }
 
     response =  requests.request("GET", url, params=querystring)
-
-    return response.content
+    #Check request status
+    if response.status_code == 200:
+        return response.content
+    else:
+        return 'ERROR: Request did not success - Status ' + str(response.status_code)
 
 if __name__ == '__main__':
     table = "dev_table"
@@ -329,6 +381,7 @@ if __name__ == '__main__':
 
 '''    
     #SDK Testing v1.0.0
+    import tensorflow as tf
     
     print '\n------- Input Tensor --------\n'
     sess = tf.Session()

@@ -106,6 +106,7 @@ def str_to_np_matrix(input_str):
         input_str = input_str.replace(';', '"],["')
         input_str = input_str.replace(' ', '","')
         input_str = '[["' + input_str + '"]]'
+        #Replace ## for spaces
         input_str = input_str.replace('##', ' ')
         input_str = input_str.replace('[,', '[')
         matrix = np.matrix(eval(input_str))
@@ -125,7 +126,9 @@ def str_to_np_matrix(input_str):
 
 def tensor_to_str(tensor):
     session = tf.Session()
+    #read in tensor contents
     str_tensor = str(session.run(tensor))
+    #Tensor parsing
     str_tensor = str_tensor.replace('\n', ',')
     pattern = re.compile(r'(,){2,}')
     pattern_s = re.compile(r'(\s){2,}')
@@ -137,6 +140,7 @@ def tensor_to_str(tensor):
     type = tf.Variable(tensor)
     type = str(type.dtype)
     type = re.search("'(.*)'", type)
+    #Add meta data to string
     str_tensor = str_tensor + "_" + type.group(1) + "_tensor"
     session.close()
     return str_tensor
