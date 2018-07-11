@@ -4,13 +4,13 @@ import warnings
 from Matrix_def import *
 
 
-class CHARLOTTTE_DB:
+class CHARLOTTE_DB:
 
     def __init__(self, IP_ADDRESS_DB, DATABASE_TOKEN):
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
 
-    def simple_object_add(self, table_name, key_field, key_value, field_1=None, value_1=None, field_2=None, value_2=None, field_3=None, value_3=None, field_4=None, value_4=None, field_5=None, value_5=None, field_6=None, value_6=None, field_7=None, value_7=None, field_8=None, value_8=None,field_9=None, value_9=None,field_10=None, value_10=None):
+    def simple_object_add_under10(self, table_name, key_field, key_value, field_1=None, value_1=None, field_2=None, value_2=None, field_3=None, value_3=None, field_4=None, value_4=None, field_5=None, value_5=None, field_6=None, value_6=None, field_7=None, value_7=None, field_8=None, value_8=None,field_9=None, value_9=None,field_10=None, value_10=None):
         params = locals()
         del params['self']
         del params['table_name']
