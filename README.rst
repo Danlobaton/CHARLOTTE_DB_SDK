@@ -3,7 +3,7 @@ Flash Charlotte SDK
 *******************
 An easy-to-use lighting fast SDK for a lighting fast database.
 
-The documentation for this package can be found `here <https://github.com/Danlobaton/flash-Charlotte-docs>`
+The documentation for this package can be found `here <https://github.com/Danlobaton/flash-Charlotte-docs>`_
 
 Enjoy (:
 
