@@ -16,7 +16,6 @@ class CHARLOTTE_DB:
         del params['table_name']
         del params['key_value']
         del params['key_field']
-        print params
         fin_json = {}
         for key,value in params.items():
             if params[key] is None:
@@ -25,6 +24,7 @@ class CHARLOTTE_DB:
             fin_json[key] = value
         return self.add_new_keyed_object(table_name,key_field,key_value,fin_json)
 
+    #TODO DEPRECATE
     def add_json_batch(self, table_name, key_field, dict_of_json,keyed=True):
         # get amount of json objects in dict
         for key, value in dict_of_json.iteritems():
