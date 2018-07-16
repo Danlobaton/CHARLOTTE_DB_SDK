@@ -10,6 +10,14 @@ class CHARLOTTE_DB:
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
 
+    def add_batch_uniqueKey(selfself, table_name, key_field, key_value, arr_json_objects):
+        num_objects = len(arr_json_objects)
+        num_fields = len(arr_json_objects[0])
+        input_arr = {}
+        for item in arr_json_objects:
+            item
+            input_arr.append("add_new_object_to_table_uniqueKey_array", table_name, item[0])
+
     def simple_object_add_under10(self, table_name, key_field, key_value, field_1=None, value_1=None, field_2=None, value_2=None, field_3=None, value_3=None, field_4=None, value_4=None, field_5=None, value_5=None, field_6=None, value_6=None, field_7=None, value_7=None, field_8=None, value_8=None,field_9=None, value_9=None,field_10=None, value_10=None):
         params = locals()
         del params['self']
