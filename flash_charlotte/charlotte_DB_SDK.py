@@ -1,6 +1,6 @@
 import json
 import requests
-import warnings
+import base64
 from Matrix_def import *
 
 
@@ -10,13 +10,67 @@ class CHARLOTTE_DB:
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
 
-    def add_batch_uniqueKey(selfself, table_name, key_field, key_value, arr_json_objects):
-        num_objects = len(arr_json_objects)
-        num_fields = len(arr_json_objects[0])
-        input_arr = {}
-        for item in arr_json_objects:
-            item
-            input_arr.append("add_new_object_to_table_uniqueKey_array", table_name, item[0])
+    def get_image(self, table, search_field, search_string, new_img_name = None):
+        base_json = self.get_object(table,search_field,search_string)
+        #Check that its an image object
+        del base_json[search_field]
+        fields = base_json.keys()
+        if len(fields) > 1 :
+            raise Exception('Object retried was not an image object')
+        img_str = base_json[fields[0]]
+        #Check if object contains an image str
+        if '[#@!$IMAGE!@#$]#89#!_!#89#' in img_str:
+            data = img_str.split('#89#!_!#89#')
+            if new_img_name is not None:
+                img = open(new_img_name, 'wb')
+                str = data[2]
+                img.write(str.decode('base64'))
+
+    def add_keyed_image(self, table, img_field, img_file_name, key_field, key_string):
+        with open(img_file_name,'rb') as image_file:
+            img_str = base64.b64encode(image_file.read())
+            img_str += '[#@!$IMAGE!@#$]#89#!_!#89#'+str(img_file_name) + '#89#!_!#89#'
+        json_data = { img_field, img_str }
+        return self.add_new_keyed_object(table, key_field, key_string, json_data)
+
+    def add_batch_uniqueKey(self, table_name, key_field, arr_json_objects):
+        #List that contains elements for batch API call.
+        input_arr = []
+        try:
+            for item in arr_json_objects:
+                input_arr.append("add_new_object_to_table_uniqueKey_array")
+                input_arr.append(table_name)
+                key_str = str(item[key_field])
+                del item[key_field]
+                keys = item.keys()
+                vals = item.values()
+                #Designated string format for API call
+                parsed = [key_field, key_str] + keys + ['end'] + vals + ['end']
+                input_arr += parsed
+        #Input type check error handling
+        except TypeError:
+            input_type = str(type(arr_json_objects))
+            if 'list' not in input_type:
+                raise Exception("Was expecting a list of dicts but got " + input_type + " instead")
+            else:
+                for item in arr_json_objects:
+                    if 'dict'not in str(type(item)):
+                        raise Exception("Was expecting a list of dicts but got a list with a " + str(type(item)) + " instead")
+        #Start setting up API call
+        url = "http://" + self.IP_ADDRESS_DB + "/db/%2Abatch_DB_charlotte_json%2A"
+
+        querystring = {"token": self.DATABASE_TOKEN }
+
+        payload = {'json_data': input_arr}
+        response = requests.post(url, data=payload, params=querystring)
+        try:
+            if response.status_code == 200:
+                return str(response.content)
+            else:
+                return 'ERROR: Request did not success - Status ' + str(response.status_code)
+        except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
+            return str(response.content)
+
 
     def simple_object_add_under10(self, table_name, key_field, key_value, field_1=None, value_1=None, field_2=None, value_2=None, field_3=None, value_3=None, field_4=None, value_4=None, field_5=None, value_5=None, field_6=None, value_6=None, field_7=None, value_7=None, field_8=None, value_8=None,field_9=None, value_9=None,field_10=None, value_10=None):
         params = locals()
@@ -31,17 +85,6 @@ class CHARLOTTE_DB:
                 continue
             fin_json[key] = value
         return self.add_new_keyed_object(table_name,key_field,key_value,fin_json)
-
-    #TODO DEPRECATE
-    def add_json_batch(self, table_name, key_field, dict_of_json,keyed=True):
-        # get amount of json objects in dict
-        for key, value in dict_of_json.iteritems():
-            if keyed:
-                status = self.add_new_keyed_object(table_name, key_field, key, value)
-            else:
-                status = self.add_object_noKey(table_name, key_field, key, value)
-            if 'SUCCESS' not in status:
-                warnings.warn("Object with key_string " + key + " data: " + str(json) + " could was could not be added.\nServer Message: " + str(status))
 
     # In Docs
     def get_table_names(self):
