@@ -12,10 +12,16 @@ class CHARLOTTE_DB:
 
     def get_image(self, table, search_field, search_string, new_img_name = None):
         base_json = self.get_object(table,search_field,search_string)
+        print base_json
+        #Check that the get object call succeeded
+        if 'ERROR' in str(base_json):
+            #return error message from get request
+            return base_json
         #Check that its an image object
         del base_json[search_field]
         fields = base_json.keys()
-        if len(fields) > 1 :
+        print fields
+        if '[#@!$IMAGE!@#$]#89#!_!#89#' not in base_json[fields[0]]:
             raise Exception('Object retried was not an image object')
         img_str = base_json[fields[0]]
         #Check if object contains an image str
@@ -23,14 +29,23 @@ class CHARLOTTE_DB:
             data = img_str.split('#89#!_!#89#')
             if new_img_name is not None:
                 img = open(new_img_name, 'wb')
-                str = data[2]
-                img.write(str.decode('base64'))
+                base_str = str(data[2])
+                img.write(base_str.decode('base64'))
+                print 'SUCCESS getting image ' + new_img_name
+            else:
+                img = open(data[1],'wb')
+                base_str = str(data[2])
+                img.write(base_str.decode('base64'))
+                print 'SUCCESS getting image ' + str(data[2])
+            return img
+        else:
+            return 'Obj not an image'
 
     def add_keyed_image(self, table, img_field, img_file_name, key_field, key_string):
         with open(img_file_name,'rb') as image_file:
             img_str = base64.b64encode(image_file.read())
-            img_str += '[#@!$IMAGE!@#$]#89#!_!#89#'+str(img_file_name) + '#89#!_!#89#'
-        json_data = { img_field, img_str }
+            meta_data = '[#@!$IMAGE!@#$]#89#!_!#89#'+str(img_file_name) + '#89#!_!#89#'
+        json_data = { img_field : meta_data + img_str }
         return self.add_new_keyed_object(table, key_field, key_string, json_data)
 
     def add_batch_uniqueKey(self, table_name, key_field, arr_json_objects):
@@ -62,7 +77,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN }
 
         payload = {'json_data': input_arr}
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             if response.status_code == 200:
                 return str(response.content)
@@ -90,7 +105,7 @@ class CHARLOTTE_DB:
     def get_table_names(self):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aget_table_names%2A"
         querystring = {"token": self.DATABASE_TOKEN}
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params=querystring, timeout = 45)
         try:
             if response.content == 200:
                 names = eval(response.content)
@@ -106,7 +121,7 @@ class CHARLOTTE_DB:
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
             # Check if response went as planned
             if response.status_code != 200:
@@ -125,7 +140,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": fields[0],
                        "search_string": ""}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         # Check request status and proceed with data parsing if successful
         if response.status_code == 200:
             try:
@@ -152,8 +167,8 @@ class CHARLOTTE_DB:
             return Exception('TABLE NAME CANNOT BE EMPTY STRING')
         # Parse request
         array_of_fields = '{"' + '","'.join(array_of_fields) + '"}'
-        request = requests.get(
-            'http://' + self.IP_ADDRESS_DB + '/db/*create_table*?token=' + self.DATABASE_TOKEN + '&table_name=' + table_name + '&array_of_fields=' + array_of_fields)
+        #request object - timesout after 10secs
+        request = requests.get('http://' + self.IP_ADDRESS_DB + '/db/*create_table*?token=' + self.DATABASE_TOKEN + '&table_name=' + table_name + '&array_of_fields=' + array_of_fields, timeout = 45)
         # Check response
         try:
             if request.status_code != 200:
@@ -170,7 +185,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         # Check request status
         try:
             if response.status_code == 200:
@@ -197,7 +212,7 @@ class CHARLOTTE_DB:
                        "key_string": key_string}
 
         payload = {'json_data': json_data}
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             if response.status_code == 200:
                 return str(response.content)
@@ -214,7 +229,7 @@ class CHARLOTTE_DB:
         if table_name == "" or table_name.isspace():
             raise Exception("Table name cannot be empty")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
             if response.status_code == 200:
@@ -232,7 +247,7 @@ class CHARLOTTE_DB:
         if search_string == "" or search_string.isspace():
             raise Exception("Cannot have empty search_string")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         # Check if request succeded
         try:
             if response.status_code == 200:
@@ -250,7 +265,7 @@ class CHARLOTTE_DB:
         if field_name == "" or field_name.isspace():
             raise Exception("Cannot have empty field name")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
             if response.status_code == 200:
@@ -268,7 +283,7 @@ class CHARLOTTE_DB:
         if new_name == "" or new_name.isspace():
             raise Exception("New table name cannot be empty")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         # Check if request succeeded
         try:
             if response.status_code == 200:
@@ -291,7 +306,7 @@ class CHARLOTTE_DB:
         if new_name == "" or new_name.isspace():
             raise Exception("New field name cannot be empty")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
             if response.status_code == 200:
                 if "SUCCESS" in response.content:
@@ -311,7 +326,7 @@ class CHARLOTTE_DB:
         if field_name == "" or field_name.isspace():
             raise Exception("Cannot have empty field name")
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         # Check if request succeeded
         try:
             if response.status_code == 200:
@@ -325,7 +340,7 @@ class CHARLOTTE_DB:
     def reinit(self):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
         querystring = {"token": self.DATABASE_TOKEN}
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         return response.content
 
     # In Docs
@@ -344,7 +359,7 @@ class CHARLOTTE_DB:
 
         payload = {'json_data': json_data}
 
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         # Check if request succeeded
         try:
             if response.status_code == 200:
@@ -370,7 +385,7 @@ class CHARLOTTE_DB:
 
         payload = {'json_data': json_data}
 
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
             if response.status_code == 200:
@@ -399,7 +414,7 @@ class CHARLOTTE_DB:
         json_data = json.dumps({matrix_field: matrix})
         payload = {"json_data": json_data}
 
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
             if response.status_code == 200:
@@ -424,7 +439,7 @@ class CHARLOTTE_DB:
         json_data = json.dumps({tensor_field: tensor})
         payload = {"json_data": json_data}
 
-        response = requests.post(url, data=payload, params=querystring)
+        response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
             if response.status_code == 200:
@@ -441,7 +456,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         if response.status_code == 200:
             try:
                 data = json.loads(response.content)
@@ -472,7 +487,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         if response.status_code:
             try:
                 data = json.loads(response.content)
@@ -502,7 +517,7 @@ class CHARLOTTE_DB:
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Astatus%2A"
         querystring = {"token": self.DATABASE_TOKEN}
 
-        response = requests.request("GET", url, params=querystring)
+        response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
             # Check request status
             if response.status_code == 200:
