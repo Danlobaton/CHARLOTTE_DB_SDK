@@ -17,29 +17,32 @@ class CHARLOTTE_DB:
         if 'ERROR' in str(base_json):
             #return error message from get request
             return str(base_json)
-        #Check that its an image object
+        #Check if string object contains image meta-data
         if '[#@!$IMAGE!@#$]' not in base_json[img_field]:
             return('Retrieved object is not an image')
         img_str = base_json[img_field]
-        #Check if object contains an image str
+        #Check if object contains an image string
         if '[#@!$IMAGE!@#$]#89#!_!#89#' in img_str:
             data = img_str.split('#89#!_!#89#')
+            #Retrieve image and assign it the same file name the it was used to be stored in
             if new_img_name is not None:
                 img = open(new_img_name, 'wb')
                 base_str = str(data[2])
                 img.write(str(base_str.decode('base64')))
                 return 'SUCCESS getting image ' + new_img_name
             else:
+                #assign new file name to retrieved image
                 img = open(data[1],'wb')
                 base_str = str(data[2])
                 img.write(str(base_str.decode('base64')))
                 return 'SUCCESS getting image ' + str(data[2])
         else:
-            return 'Obj not an image'
+            return 'Object is not an image'
 
     def add_keyed_image(self, table, img_field, img_file_name, key_field, key_string):
         with open(img_file_name,'rb') as image_file:
             img_str = base64.b64encode(image_file.read())
+            #Add meta-data in object to be added as a string encoded image
             meta_data = '[#@!$IMAGE!@#$]#89#!_!#89#'+str(img_file_name) + '#89#!_!#89#'
         json_data = { img_field : meta_data + img_str }
         return self.add_new_keyed_object(table, key_field, key_string, json_data)
@@ -85,6 +88,7 @@ class CHARLOTTE_DB:
 
     def simple_object_add_under10(self, table_name, key_field, key_value, field_1=None, value_1=None, field_2=None, value_2=None, field_3=None, value_3=None, field_4=None, value_4=None, field_5=None, value_5=None, field_6=None, value_6=None, field_7=None, value_7=None, field_8=None, value_8=None,field_9=None, value_9=None,field_10=None, value_10=None):
         params = locals()
+        #Parse data
         del params['self']
         del params['table_name']
         del params['key_value']
@@ -210,6 +214,7 @@ class CHARLOTTE_DB:
         payload = {'json_data': json_data}
         response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
+            #Check if request succeeded
             if response.status_code == 200:
                 return str(response.content)
             else:
@@ -257,7 +262,7 @@ class CHARLOTTE_DB:
     def add_new_field(self, table_name, field_name):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name}
-
+        #Check that an empty field was not passed in
         if field_name == "" or field_name.isspace():
             raise Exception("Cannot have empty field name")
 
@@ -273,6 +278,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def rename_table(self, table_name, new_name):
+        #API call url
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Arename_table%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "new_table_name": new_name}
 
@@ -298,12 +304,13 @@ class CHARLOTTE_DB:
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
                        "new_field_name": new_name}
-
+        #Check that an empty name was not passed in
         if new_name == "" or new_name.isspace():
             raise Exception("New field name cannot be empty")
 
         response = requests.request("GET", url, params = querystring, timeout = 45)
         try:
+            #Check if request succeeded
             if response.status_code == 200:
                 if "SUCCESS" in response.content:
                     return "SUCCESS " + field_name + " changed to " + new_name
@@ -319,6 +326,7 @@ class CHARLOTTE_DB:
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
                        "search_string": search_string}
+        #Check that empty field name was not passed in
         if field_name == "" or field_name.isspace():
             raise Exception("Cannot have empty field name")
 
@@ -337,24 +345,24 @@ class CHARLOTTE_DB:
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
         querystring = {"token": self.DATABASE_TOKEN}
         response = requests.request("GET", url, params = querystring, timeout = 45)
+        #Return server status as a string
         return response.content
 
     # In Docs
     def update_object(self, table_name, key_field, key_string, json_data):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
-
+        #Make sure that a json formatted string was passed or a dict
         type_check = str(type(json_data))
         if not "str" in type_check:
             if "dict" in type_check:
                 json_data = json.dumps(json_data)
+            #Give an error if no possible json object was passed
             else:
                 raise Exception("Expecting json or dict object but got [" + type_check + "] instead")
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": key_field,
                        "search_string": key_string}
-
         payload = {'json_data': json_data}
-
         response = requests.post(url, data = payload, params = querystring, timeout = 45)
         # Check if request succeeded
         try:
@@ -368,7 +376,7 @@ class CHARLOTTE_DB:
     # In Docs
     def add_object_noKey(self, table_name, key_field, key_string, json_data):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
-
+        #Check that a json object was passed in (if string is not json formatted, server will let user know)
         type_check = str(type(json_data))
         if not "str" in type_check:
             if "dict" in type_check:
@@ -380,7 +388,7 @@ class CHARLOTTE_DB:
                        "key_string": key_string}
 
         payload = {'json_data': json_data}
-
+        #Send db request with a 45 second timeout
         response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
@@ -394,10 +402,11 @@ class CHARLOTTE_DB:
     # In Docs
     def add_matrix(self, table_name, key_field, key_string, matrix_field, matrix):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
-
+        #Make sure that a numpy array was passed in
         type_check = str(type(matrix))
         if "numpy.ndarray" in type_check:
             matrix = np_matrix_to_str(matrix)
+        #if a list was passed in instead. Convert it to a numpy array
         elif "list" in type_check:
             matrix = py_matrix_to_str(matrix)
         else:
@@ -409,7 +418,7 @@ class CHARLOTTE_DB:
 
         json_data = json.dumps({matrix_field: matrix})
         payload = {"json_data": json_data}
-
+        #Send request
         response = requests.post(url, data = payload, params = querystring, timeout = 45)
         try:
             # Check if request succeeded
@@ -425,6 +434,7 @@ class CHARLOTTE_DB:
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
 
         type_check = str(type(tensor))
+        #Check that a tensor was passed in
         if "tensorflow" not in type_check:
             raise Exception("Was a expecting a tensor but got a " + type_check + " instead")
 
@@ -454,6 +464,7 @@ class CHARLOTTE_DB:
 
         response = requests.request("GET", url, params = querystring, timeout = 45)
         if response.status_code == 200:
+            #Check for matrix meta-data to determine was kind of matrix was passed in
             try:
                 data = json.loads(response.content)
                 data = data[0]
@@ -517,6 +528,7 @@ class CHARLOTTE_DB:
         try:
             # Check request status
             if response.status_code == 200:
+                #return response as a string
                 return response.content
             else:
                 return 'ERROR: Request did not success - Status ' + str(response.status_code)
