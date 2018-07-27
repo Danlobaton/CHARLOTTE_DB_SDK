@@ -1,3 +1,4 @@
+from __future__ import print_function
 import json
 import requests
 import base64
@@ -10,34 +11,29 @@ class CHARLOTTE_DB:
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
 
-    def get_image(self, table, search_field, search_string, new_img_name = None):
+    def get_image(self, table, search_field, search_string, img_field, new_img_name = None):
         base_json = self.get_object(table,search_field,search_string)
-        print base_json
         #Check that the get object call succeeded
         if 'ERROR' in str(base_json):
             #return error message from get request
-            return base_json
+            return str(base_json)
         #Check that its an image object
-        del base_json[search_field]
-        fields = base_json.keys()
-        print fields
-        if '[#@!$IMAGE!@#$]#89#!_!#89#' not in base_json[fields[0]]:
-            raise Exception('Object retried was not an image object')
-        img_str = base_json[fields[0]]
+        if '[#@!$IMAGE!@#$]' not in base_json[img_field]:
+            return('Retrieved object is not an image')
+        img_str = base_json[img_field]
         #Check if object contains an image str
         if '[#@!$IMAGE!@#$]#89#!_!#89#' in img_str:
             data = img_str.split('#89#!_!#89#')
             if new_img_name is not None:
                 img = open(new_img_name, 'wb')
                 base_str = str(data[2])
-                img.write(base_str.decode('base64'))
-                print 'SUCCESS getting image ' + new_img_name
+                img.write(str(base_str.decode('base64')))
+                return 'SUCCESS getting image ' + new_img_name
             else:
                 img = open(data[1],'wb')
                 base_str = str(data[2])
-                img.write(base_str.decode('base64'))
-                print 'SUCCESS getting image ' + str(data[2])
-            return img
+                img.write(str(base_str.decode('base64')))
+                return 'SUCCESS getting image ' + str(data[2])
         else:
             return 'Obj not an image'
 
@@ -185,7 +181,7 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
 
-        response = requests.request("GET", url, params = querystring, timeout = 45)
+        response = requests.request("GET", url, params = querystring, timeout = 60)
         # Check request status
         try:
             if response.status_code == 200:
@@ -248,7 +244,7 @@ class CHARLOTTE_DB:
             raise Exception("Cannot have empty search_string")
 
         response = requests.request("GET", url, params = querystring, timeout = 45)
-        # Check if request succeded
+        # Check if request succeeded
         try:
             if response.status_code == 200:
                 return str(response.content)
