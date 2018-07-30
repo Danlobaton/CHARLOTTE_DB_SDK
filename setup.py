@@ -5,12 +5,12 @@ with open('README.rst', 'r') as f:
     long_description = f.read()
 
 setup(
-    name='flash_charlotte',
+    name='charlotte_db',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.9.24',
+    version='0.7.1',
 
     description='A lighting fast SDK for a lighting fast DB',
     long_description=long_description,
