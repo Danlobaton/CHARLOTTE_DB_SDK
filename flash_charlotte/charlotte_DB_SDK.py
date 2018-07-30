@@ -2,7 +2,10 @@ from __future__ import print_function
 import json
 import requests
 import base64
-from Matrix_def import *
+try:
+    from Matrix_def import *
+except ImportError:
+    from .Matrix_def import *
 
 
 class CHARLOTTE_DB:
@@ -456,6 +459,7 @@ class CHARLOTTE_DB:
             return str(response.content)
 
     # In Docs
+    #TODO iF TENSOR/MATRIX CONVERSION DOESNT WORK IS BECAUSE YOU ARE TYPE CHECKING FOR STRINGS AND NOT BASESTRING
     def get_matrix(self, table_name, search_field, search_string, matrix_field):
         url = "http://" + self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 

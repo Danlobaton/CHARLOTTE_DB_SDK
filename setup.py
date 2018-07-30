@@ -10,7 +10,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.9.4',
+    version='0.9.24',
 
     description='A lighting fast SDK for a lighting fast DB',
     long_description=long_description,
@@ -41,7 +41,7 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2.7',
+        #'Programming Language :: Python :: 2.7,3.4',
     ],
     packages=find_packages(),
     install_requires=[

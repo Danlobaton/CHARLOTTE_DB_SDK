@@ -3,6 +3,7 @@ from numpy import ndarray
 import numpy as np
 import tensorflow as tf
 
+
 def digit_float_str(str):
     try:
         final = int(str)
@@ -25,9 +26,8 @@ def py_matrix_to_str(matrix):
         return ','.join(map(str, matrix))
 
     # Check if matrix is valid
-    in_type = str(type(matrix))
     if not isinstance(matrix, list):
-        raise TypeError('Expecting valid python matrix - Got ' + in_type + ' instead')
+        raise TypeError('Expecting valid python matrix - Got ' + str(type(matrix)) + ' instead')
     temp = -1
     for row in matrix:
         if not isinstance(row, list):
@@ -68,21 +68,21 @@ def np_matrix_to_str(matrix):
         if matrix.ndim == 1:
             return col_delim.join(x for x in matrix)
         for (x, y), value in np.ndenumerate(matrix):
-            if isinstance(matrix[x, y], basestring):
+            if isinstance(matrix[x, y], str):
                 matrix[x, y] = matrix[x, y].replace(' ', '##')
         if matrix.ndim == 2:
-            type = np.array(matrix)
-            type = str(type.dtype)
-            if 'float' in type:
+            input_type = np.array(matrix)
+            input_type = str(type.dtype)
+            if 'float' in input_type:
                 matrix = row_delim.join(col_delim.join('%0.5f' % x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
                 matrix = matrix.replace(";;;", ";")
                 return "NUMPY_" + matrix.replace(";.;", ".")
-            if 'int' in type:
+            if 'int' in input_type:
                 matrix = row_delim.join(col_delim.join('%0.0f' % x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
                 return "NUMPY_" + matrix
-            if 'str' in type:
+            if 'str' in input_type:
                 matrix = row_delim.join(col_delim.join(x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
                 matrix = matrix.replace(";;;", ";")
@@ -98,8 +98,8 @@ def np_matrix_to_str(matrix):
 def str_to_np_matrix(input_str):
     input_str = input_str.split('_')
     input_str = input_str[1]
-    if not isinstance(input_str, basestring):
-        raise Exception("Was exprecting str but got " + str(type(input_str)) + " instead")
+    if not isinstance(input_str, str):
+        raise Exception("Was expecting str but got " + str(type(input_str)) + " instead")
     try:
         matrix = np.matrix(input_str)
     except NameError:
