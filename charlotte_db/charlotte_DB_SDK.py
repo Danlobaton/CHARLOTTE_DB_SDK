@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import json
 import requests
 import base64
@@ -466,11 +467,15 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
 
-        response = requests.request("GET", url, params = querystring, timeout = 45)
+        response = requests.request("GET", url, params=querystring, timeout=45)
         if response.status_code == 200:
-            #Check for matrix meta-data to determine was kind of matrix was passed in
+            # Check for matrix meta-data to determine was kind of matrix was passed in
             try:
-                data = json.loads(response.content)
+                if sys.version_info[0] < 3:
+                    data = json.loads(response.content)
+                else:
+                    data = response.content
+                    data = json.loads(data.decode('utf-8'))
                 data = data[0]
                 data = {key: value for item in data for key, value in item.items()}
                 matrix_str = data[matrix_field]
@@ -501,7 +506,11 @@ class CHARLOTTE_DB:
         response = requests.request("GET", url, params = querystring, timeout = 45)
         if response.status_code == 200:
             try:
-                data = json.loads(response.content)
+                if sys.version_info[0] < 3:
+                    data = json.loads(response.content)
+                else:
+                    data = response.content
+                    data = json.loads(data.decode('utf-8'))
                 data = data[0]
                 data = {key: value for item in data for key, value in item.items()}
                 tensor_str = data[tensor_field]

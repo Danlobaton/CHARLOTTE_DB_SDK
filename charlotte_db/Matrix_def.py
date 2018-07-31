@@ -1,5 +1,6 @@
 import re
 from numpy import ndarray
+import sys
 import numpy as np
 import tensorflow as tf
 
@@ -98,7 +99,11 @@ def np_matrix_to_str(matrix):
 
 
 def str_to_np_matrix(input_str):
-    input_str = input_str.split('_')
+    if sys.version_info[0] < 3:
+        input_str = input_str.split('_')
+    else:
+        input_str = input_str.decode('utf-8')
+        input_str = input_str.split('_')
     input_str = input_str[1]
     if not isinstance(input_str, str):
         raise Exception("Was expecting str but got " + str(type(input_str)) + " instead")
@@ -108,7 +113,7 @@ def str_to_np_matrix(input_str):
         input_str = input_str.replace(';', '"],["')
         input_str = input_str.replace(' ', '","')
         input_str = '[["' + input_str + '"]]'
-        #Replace ## for spaces
+        # Replace ## for spaces
         input_str = input_str.replace('##', ' ')
         input_str = input_str.replace('[,', '[')
         matrix = np.matrix(eval(input_str))
@@ -149,7 +154,11 @@ def tensor_to_str(tensor):
 
 
 def str_to_tensor(str_tensor):
-    str_tensor = str_tensor.split('_')
+    if sys.version_info[0] < 3:
+        str_tensor = str_tensor.split('_')
+    else:
+        str_tensor = str_tensor.decode('utf-8')
+        str_tensor = str_tensor.split('_')
     np_array = np.array(eval(str_tensor[0]))
     tensor_type = str_tensor[1]
     if str_tensor[3] != "tensor":
