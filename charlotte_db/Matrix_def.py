@@ -71,8 +71,10 @@ def np_matrix_to_str(matrix):
             if isinstance(matrix[x, y], str):
                 matrix[x, y] = matrix[x, y].replace(' ', '##')
         if matrix.ndim == 2:
+            #Check the type of data inside the numpy array using .dtype property
+            #and string the data accordingly
             input_type = np.array(matrix)
-            input_type = str(type.dtype)
+            input_type = str(input_type.dtype)
             if 'float' in input_type:
                 matrix = row_delim.join(col_delim.join('%0.5f' % x for x in y) for y in matrix)
                 matrix = matrix.replace("; ;", " ")
@@ -149,9 +151,9 @@ def tensor_to_str(tensor):
 def str_to_tensor(str_tensor):
     str_tensor = str_tensor.split('_')
     np_array = np.array(eval(str_tensor[0]))
-    type = str_tensor[1]
+    tensor_type = str_tensor[1]
     if str_tensor[3] != "tensor":
         raise Exception("String is not a tensor")
     tensor = tf.convert_to_tensor(np_array)
-    tensor = tf.cast(tensor, eval(type))
+    tensor = tf.cast(tensor, tensor_type)
     return tensor

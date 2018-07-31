@@ -499,7 +499,7 @@ class CHARLOTTE_DB:
                        "search_string": search_string}
 
         response = requests.request("GET", url, params = querystring, timeout = 45)
-        if response.status_code:
+        if response.status_code == 200:
             try:
                 data = json.loads(response.content)
                 data = data[0]
