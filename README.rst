@@ -1,5 +1,5 @@
 ****************
-Charlotte DB SDK
+Charlotte_DB SDK
 ****************
 An easy-to-use lighting fast SDK for a lighting fast database.
 
