@@ -19,8 +19,6 @@ class CHARLOTTE_DB:
         else:
             self.PROTOCOL = 'http'
 
-    def upload_csv(self, ):
-
     def get_image(self, table, search_field, search_string, img_field, new_img_name = None):
         base_json = self.get_object(table,search_field,search_string)
         #Check that the get object call succeeded
@@ -204,6 +202,25 @@ class CHARLOTTE_DB:
                 for index in range(0, len(data)):
                     data = {key: value for item in data[index] for key, value in item.items()}
                 return data
+        except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
+            return str(response.content)
+
+         # POST
+         # Creates a new table from a csv file
+         # first colum is key fields/values
+    def upload_csv(self, table_name, csv_file):
+        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/%2Acsv_upload%2A"
+        querystring = {"token": self.DATABASE_TOKEN, 'table_name': table_name}
+        with open(csv_file, 'r') as file:
+            #Add csv to post payload
+            payload = {'csv_file': file}
+            response = requests.post(url, data = payload, params = querystring, timeout = 45)
+        try:
+            # Check if request succeeded
+            if response.status_code == 200:
+                return str(response.content)
+            else:
+                return 'ERROR: Request did not success - Status ' + str(response.status_code)
         except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
             return str(response.content)
 
