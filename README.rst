@@ -1,10 +1,14 @@
 ****************
-Charlotte DB SDK
+Charlotte_DB SDK
 ****************
 An easy-to-use lighting fast SDK for a lighting fast database.
 
-The documentation for this package can be found `here <https://github.com/Danlobaton/CHARLOTTE_DB_SDK/blob/master/DOCS.md>`_
+Visit the repo's Wiki here for the documentation `here <https://github.com/Danlobaton/Charlotte_DB_SDK/wiki>`_
+
+You can read and check out what Charlotte_DB is about in our `site <https://www.charlottedb.com/>`_
 
 Enjoy (:
 
 -Dany L and the Charlotte.AI team
+
+dany@charlotteai.co
