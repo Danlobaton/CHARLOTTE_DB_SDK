@@ -1,4 +1,4 @@
-# Charlotte DB SDK
+# Charlotte_DB SDK
 
 *A lightning fast SDK for a lightning fast database* 
 
