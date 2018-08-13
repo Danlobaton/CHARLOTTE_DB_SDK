@@ -11,13 +11,9 @@ except ImportError:
 
 class CHARLOTTE_DB:
 
-    def __init__(self, IP_ADDRESS_DB, DATABASE_TOKEN, HTTPS=False):
+    def __init__(self, IP_ADDRESS_DB, DATABASE_TOKEN):
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
-        if HTTPS:
-            self.PROTOCOL = 'https'
-        else:
-            self.PROTOCOL = 'http'
 
     def get_image(self, table, search_field, search_string, img_field, new_img_name = None):
         base_json = self.get_object(table,search_field,search_string)
@@ -79,7 +75,7 @@ class CHARLOTTE_DB:
                     if 'dict'not in str(type(item)):
                         raise Exception("Was expecting a list of dicts but got a list with a " + str(type(item)) + " instead")
         #Start setting up API call
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Abatch_DB_charlotte_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Abatch_DB_charlotte_json%2A"
 
         querystring = {"token": self.DATABASE_TOKEN }
 
@@ -111,7 +107,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_table_names(self):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_table_names%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_table_names%2A"
         querystring = {"token": self.DATABASE_TOKEN}
         response = requests.request("GET", url, params=querystring, timeout = 45)
         try:
@@ -123,9 +119,10 @@ class CHARLOTTE_DB:
         except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
             return response.content
 
+
     # In Docs
     def get_table_fields(self, table_name):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_fields%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_fields%2A"
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name}
 
@@ -143,7 +140,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_all_objects_json(self, table_name):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
         fields = self.get_table_fields(table_name)
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": fields[0],
                        "search_string": ""}
@@ -188,7 +185,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_object(self, table_name, search_field, search_string):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
@@ -209,7 +206,7 @@ class CHARLOTTE_DB:
          # Creates a new table from a csv file
          # first colum is key fields/values
     def upload_csv(self, table_name, csv_file):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/%2Acsv_upload%2A"
+        url = self.IP_ADDRESS_DB + "/%2Acsv_upload%2A"
         querystring = {"token": self.DATABASE_TOKEN, 'table_name': table_name}
         with open(csv_file, 'r') as file:
             #Add csv to post payload
@@ -226,7 +223,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def add_new_keyed_object(self, table_name, key_field, key_string, json_data):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
         # Check that user input for json is either json or a dict
         type_check = str(type(json_data))
         if not "str" in type_check:
@@ -251,7 +248,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def delete_table(self, table_name):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Adelete_table%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Adelete_table%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name}
 
         if table_name == "" or table_name.isspace():
@@ -269,7 +266,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def delete_object(self, table_name, search_field, search_string):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Adelete_object%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Adelete_object%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
         if search_string == "" or search_string.isspace():
@@ -287,7 +284,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def add_new_field(self, table_name, field_name):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aadd_new_field%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name}
         #Check that an empty field was not passed in
         if field_name == "" or field_name.isspace():
@@ -306,7 +303,7 @@ class CHARLOTTE_DB:
     # In Docs
     def rename_table(self, table_name, new_name):
         #API call url
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Arename_table%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Arename_table%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "new_table_name": new_name}
 
         if new_name == "" or new_name.isspace():
@@ -328,7 +325,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def update_field_name(self, table_name, field_name, new_name):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aupdate_fieldname%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
                        "new_field_name": new_name}
         #Check that an empty name was not passed in
@@ -350,7 +347,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def search_partial_matches(self, table_name, field_name, search_string):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_partial_object_data%2A"
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": field_name,
                        "search_string": search_string}
         #Check that empty field name was not passed in
@@ -369,7 +366,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def reinit(self):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Ainitialize%2A"
         querystring = {"token": self.DATABASE_TOKEN}
         response = requests.request("GET", url, params = querystring, timeout = 45)
         #Return server status as a string
@@ -377,7 +374,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def update_object(self, table_name, key_field, key_string, json_data):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aupdate_DB_charlotte_json%2A"
         #Make sure that a json formatted string was passed or a dict
         type_check = str(type(json_data))
         if not "str" in type_check:
@@ -402,7 +399,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def add_object_noKey(self, table_name, key_field, key_string, json_data):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_NOuniqueKey_json%2A"
         #Check that a json object was passed in (if string is not json formatted, server will let user know)
         type_check = str(type(json_data))
         if not "str" in type_check:
@@ -428,7 +425,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def add_matrix(self, table_name, key_field, key_string, matrix_field, matrix):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
         #Make sure that a numpy array was passed in
         type_check = str(type(matrix))
         if "numpy.ndarray" in type_check:
@@ -458,7 +455,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def add_tensor(self, table_name, key_field, key_string, tensor_field, tensor):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aadd_new_object_uniqueKey_json%2A"
 
         type_check = str(type(tensor))
         #Check that a tensor was passed in
@@ -484,7 +481,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_matrix(self, table_name, search_field, search_string, matrix_field):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
@@ -520,7 +517,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_tensor(self, table_name, search_field, search_string, tensor_field):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Aget_object_data%2A"
 
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "field_name": search_field,
                        "search_string": search_string}
@@ -556,7 +553,7 @@ class CHARLOTTE_DB:
 
     # In Docs
     def get_status(self):
-        url = self.PROTOCOL + "://" + self.IP_ADDRESS_DB + "/db/%2Astatus%2A"
+        url = self.IP_ADDRESS_DB + "/db/%2Astatus%2A"
         querystring = {"token": self.DATABASE_TOKEN}
 
         response = requests.request("GET", url, params = querystring, timeout = 45)
