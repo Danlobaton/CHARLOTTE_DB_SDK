@@ -1,5 +1,6 @@
 from __future__ import print_function
 import sys
+import ast
 import json
 import requests
 import base64
@@ -11,10 +12,9 @@ except ImportError:
 
 
 class CHARLOTTE_DB:
-    def __init__(self, IP_ADDRESS_DB, DATABASE_TOKEN, TABLE=None):
+    def __init__(self, IP_ADDRESS_DB, DATABASE_TOKEN):
         self.IP_ADDRESS_DB = IP_ADDRESS_DB
         self.DATABASE_TOKEN = DATABASE_TOKEN
-        self.TABLE = TABLE
 
     def get_image(self, table, search_field, search_string, img_field, new_img_name=None):
         base_json = self.get_object(table, search_field, search_string)
@@ -115,9 +115,11 @@ class CHARLOTTE_DB:
         querystring = {"token": self.DATABASE_TOKEN}
         response = requests.request("GET", url, params=querystring, timeout=45)
         try:
-            if response.content == 200:
-                names = eval(response.content)
-                return names
+            if response.status_code == 200:
+                #ast.literal_eval() can only evaluate a string not a bytes literal
+                #server will return a bytes literal so decode the response and turn it into
+                #a string 'utf-8'
+                return ast.literal_eval(response.content.decode('utf-8'))
             else:
                 return response.content
         except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
@@ -175,7 +177,7 @@ class CHARLOTTE_DB:
         if table_name == "":
             return Exception('TABLE NAME CANNOT BE EMPTY STRING')
         # Parse request
-        array_of_fields = "\""+','.join(array_of_fields)+"\""
+        array_of_fields = "\"" + ','.join(array_of_fields) + "\""
         # request object - timesout after 10secs
         querystring = {"token": self.DATABASE_TOKEN, "table_name": table_name, "array_of_fields": array_of_fields}
         request = requests.request("GET", url, params=querystring, timeout=45)
@@ -481,6 +483,25 @@ class CHARLOTTE_DB:
             # Check if request succeeded
             if response.status_code == 200:
                 return response.content
+            else:
+                return 'ERROR: Request did not success - Status ' + str(response.status_code)
+        except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
+            return str(response.content)
+
+    #Not in docs
+    def run_script(self, script_file_name):
+        url = self.IP_ADDRESS_DB + "/db/%2Arun_script%2A"
+        querystring = {"token": self.DATABASE_TOKEN}
+        #Read in script file to be run on server
+        with open(script_file_name, 'r') as fin:
+            script_file = fin.read()
+            if 'main_function' not in script_file:
+                raise Exception('Script file needs to contains a method called \'main_function\' for the script to properly run in Charlotte_DB')
+            payload = {'script': script_file }
+            response = requests.post(url, data = payload, params = querystring, timeout = 45)
+        try:
+            if response.status_code == 200:
+                return response.content.decode('utf-8')
             else:
                 return 'ERROR: Request did not success - Status ' + str(response.status_code)
         except (RuntimeError, TypeError, NameError, KeyError, ValueError, OSError, Exception):
