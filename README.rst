@@ -10,7 +10,5 @@ You can read and check out what Charlotte_DB is about in our `site <https://www.
 Enjoy (:
 
 -Dany L and the Charlotte.AI team
-dany@charlotteai.co
-
-PS: To ge a key ahead over to charlottedb.online
+-dany@charlotteai.co
 
